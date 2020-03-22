@@ -12,7 +12,6 @@ from tensorflow.keras import backend as K
 from PIL import Image
 from sklearn.metrics import plot_confusion_matrix
 
-
 class CNN:
     def __init__(self):
         self.lossArray = []
@@ -120,11 +119,16 @@ def get_imgs(n_imgs):
             data = json.load(f)
         print('C:/Users/Guillermo/Desktop/TFG/DatasetBW/MetadataImg/' + str(i) + '.json')
 
+        #with open(('/home/edgar/TFG_Guille/DatasetBW/MetadataImg/' + str(i) + '.json'), 'r', encoding="utf8") as f:
+        #    data = json.load(f)
+        #print('/home/edgar/TFG_Guille/DatasetBW/MetadataImg/' + str(i) + '.json')
+
         j=0
         while(j<len(data) and (CLASS0<n_imgs or CLASS1<n_imgs or CLASS2<n_imgs)):
             fold = '%04d' % (int(data[j]["id"]) % 1000)
             try:
                 imgFile = "C:/Users/Guillermo/Desktop/TFG/DatasetBW/BWImages/" + fold + "/" + str(data[j]["id"]) + ".jpg"
+                #imgFile = "/home/edgar/TFG_Guille/DatasetBW/BWImages/" + fold + "/" + str(data[j]["id"]) + ".jpg"
                 img = plt.imread(imgFile)
 
                 if (data[j]["tagArray"][11] == 1 and CLASS0<n_imgs):
