@@ -1,3 +1,8 @@
+pip install tensorflow
+pip install seaborn
+pip install Pillow
+pip install sklearn
+
 import glob, os, json
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -11,6 +16,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D
 from tensorflow.keras import backend as K
 from PIL import Image
 from sklearn.metrics import plot_confusion_matrix
+
 
 class CNN:
     def __init__(self):
@@ -28,16 +34,15 @@ class CNN:
         self.savePerformance = 20
 
         self.model = Sequential()
-        self.model.add(Flatten(input_shape=(self.input_shape)))
-        self.model.add(Dense(16384, activation='linear', activity_regularizer=tensorflow.keras.regularizers.l1(0.0001)))
-        self.model.add(Activation('relu'))
-        self.model.add(Dropout(0.2))
-        self.model.add(Dense(8192, activation='linear', activity_regularizer=tensorflow.keras.regularizers.l1(0.0001)))
-        self.model.add(Activation('relu'))
-        self.model.add(Dropout(0.2))
-        self.model.add(Dense(2048, activation='linear', activity_regularizer=tensorflow.keras.regularizers.l1(0.0001)))
-        self.model.add(Activation('relu'))
-        self.model.add(Dropout(0.2))
+        self.model.add(Conv2D(32, kernel_size=(5, 5), strides=(1, 1),
+                 activation='relu',
+                 input_shape=self.input_shape))
+        self.model.add(MaxPooling2D())
+        self.model.add(Conv2D(64, kernel_size=(5, 5), activation='relu'))
+        self.model.add(MaxPooling2D())
+        self.model.add(Conv2D(128, kernel_size=(3, 3), activation='relu'))
+        self.model.add(MaxPooling2D())
+        self.model.add(Flatten())
         self.model.add(Dense(256, activation='linear', activity_regularizer=tensorflow.keras.regularizers.l1(0.0001)))
         self.model.add(Activation('relu'))
         self.model.add(Dropout(0.2))
@@ -115,16 +120,16 @@ def get_imgs(n_imgs):
     j = 0
 
     while (i<16 and (CLASS0<n_imgs or CLASS1<n_imgs or CLASS2<n_imgs)):
-        with open(('C:/Users/Guillermo/Desktop/TFG/DatasetBW/MetadataImg/' + str(i) + '.json'), 'r', encoding="utf8") as f:
-            data = json.load(f)
-        print('C:/Users/Guillermo/Desktop/TFG/DatasetBW/MetadataImg/' + str(i) + '.json')
+        with open(('/home/edgar/TFG_Guille/DatasetBW/MetadataImg/' + str(i) + '.json'), 'r', encoding="utf8") as f:
+        	data = json.load(f)
+        print('/home/edgar/TFG_Guille/DatasetBW/MetadataImg/' + str(i) + '.json')
+
 
         j=0
         while(j<len(data) and (CLASS0<n_imgs or CLASS1<n_imgs or CLASS2<n_imgs)):
             fold = '%04d' % (int(data[j]["id"]) % 1000)
             try:
                 imgFile = "C:/Users/Guillermo/Desktop/TFG/DatasetBW/BWImages/" + fold + "/" + str(data[j]["id"]) + ".jpg"
-                #imgFile = "/home/edgar/TFG_Guille/DatasetBW/BWImages/" + fold + "/" + str(data[j]["id"]) + ".jpg"
                 img = plt.imread(imgFile)
 
                 if (data[j]["tagArray"][11] == 1 and CLASS0<n_imgs):
