@@ -20,8 +20,8 @@ class CNN:
 
         self.num_imgs = 10000
 
-        self.batch_size = 60 #Tiene que ser multiplo de 3
-        self.epochs = 5000
+        self.batch_size = 120 #Tiene que ser multiplo de 3
+        self.epochs = 25
         self.num_classes = 3
         self.batches = int((self.num_classes*self.num_imgs)/self.batch_size)
 
@@ -74,7 +74,7 @@ class CNN:
         ax2.plot(x_plot, self.accuracyArray)
         ax1.set_title('Loss')
         ax2.set_title('Accuracy')
-        filename = 'graphics/generated_graphic_e%03d.png' % (epoch)
+        filename = 'graphics/generated_graphic_e%03db%03d.png' % (epoch,batch)
         plt.savefig(filename)
         plt.close()
 
@@ -99,7 +99,7 @@ class CNN:
         plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
-        filename = 'confMatrix/generated_confMat_e%03d.png' % (epoch)
+        filename = 'confMatrix/generated_confMat_e%03db%03d.png' % (epoch,batch)
         plt.savefig(filename)
         plt.close()
 
