@@ -12,32 +12,35 @@ from tensorflow.keras import backend as K
 from PIL import Image
 from sklearn.metrics import plot_confusion_matrix
 
-
 class CNN:
     def __init__(self):
         self.lossArray = []
         self.accuracyArray = []
 
-        self.num_imgs = 10000
+        self.num_imgs = 25000
 
         self.batch_size = 120 #Tiene que ser multiplo de 3
-        self.epochs = 25
+        self.epochs = 10000
         self.num_classes = 3
         self.batches = int((self.num_classes*self.num_imgs)/self.batch_size)
 
         self.input_shape = (128, 128, 1)
-        self.savePerformance = 50
+        self.savePerformance = 20
 
         self.model = Sequential()
-        self.model.add(Conv2D(32, kernel_size=(5, 5), strides=(1, 1),
-                 activation='relu',
-                 input_shape=self.input_shape))
-        self.model.add(MaxPooling2D())
-        self.model.add(Conv2D(64, kernel_size=(5, 5), activation='relu'))
-        self.model.add(MaxPooling2D())
-        self.model.add(Conv2D(128, kernel_size=(3, 3), activation='relu'))
-        self.model.add(MaxPooling2D())
-        self.model.add(Flatten())
+        self.model.add(Flatten(input_shape=(self.input_shape)))
+        self.model.add(Dense(24576, activation='linear', activity_regularizer=tensorflow.keras.regularizers.l1(0.0001)))
+        self.model.add(Activation('relu'))
+        self.model.add(Dropout(0.2))
+        self.model.add(Dense(12288, activation='linear', activity_regularizer=tensorflow.keras.regularizers.l1(0.0001)))
+        self.model.add(Activation('relu'))
+        self.model.add(Dropout(0.2))
+        self.model.add(Dense(4096, activation='linear', activity_regularizer=tensorflow.keras.regularizers.l1(0.0001)))
+        self.model.add(Activation('relu'))
+        self.model.add(Dropout(0.2))
+        self.model.add(Dense(1024, activation='linear', activity_regularizer=tensorflow.keras.regularizers.l1(0.0001)))
+        self.model.add(Activation('relu'))
+        self.model.add(Dropout(0.2))
         self.model.add(Dense(256, activation='linear', activity_regularizer=tensorflow.keras.regularizers.l1(0.0001)))
         self.model.add(Activation('relu'))
         self.model.add(Dropout(0.2))
@@ -74,7 +77,7 @@ class CNN:
         ax2.plot(x_plot, self.accuracyArray)
         ax1.set_title('Loss')
         ax2.set_title('Accuracy')
-        filename = 'graphics/generated_graphic_e%03db%03d.png' % (epoch,batch)
+        filename = 'graphics/generated_graphic_e%03d.png' % (epoch)
         plt.savefig(filename)
         plt.close()
 
@@ -99,7 +102,7 @@ class CNN:
         plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
-        filename = 'confMatrix/generated_confMat_e%03db%03d.png' % (epoch,batch)
+        filename = 'confMatrix/generated_confMat_e%03d.png' % (epoch)
         plt.savefig(filename)
         plt.close()
 
@@ -115,15 +118,15 @@ def get_imgs(n_imgs):
     j = 0
 
     while (i<16 and (CLASS0<n_imgs or CLASS1<n_imgs or CLASS2<n_imgs)):
-        with open(('C:/Users/Guillermo/Desktop/TFG/DatasetBW/MetadataImg/' + str(i) + '.json'), 'r', encoding="utf8") as f:
+        with open(('/home/edgar/TFG_Guille/DatasetBW/MetadataImg/' + str(i) + '.json'), 'r', encoding="utf8") as f:
             data = json.load(f)
-        print('C:/Users/Guillermo/Desktop/TFG/DatasetBW/MetadataImg/' + str(i) + '.json')
+        print('/home/edgar/TFG_Guille/DatasetBW/MetadataImg/' + str(i) + '.json')
 
         j=0
         while(j<len(data) and (CLASS0<n_imgs or CLASS1<n_imgs or CLASS2<n_imgs)):
             fold = '%04d' % (int(data[j]["id"]) % 1000)
             try:
-                imgFile = "C:/Users/Guillermo/Desktop/TFG/DatasetBW/LowResImages/" + fold + "/" + str(data[j]["id"]) + ".jpg"
+                imgFile = "/home/edgar/TFG_Guille/DatasetBW/LowResImages/" + fold + "/" + str(data[j]["id"]) + ".jpg"
                 img = plt.imread(imgFile)
 
                 if (data[j]["tagArray"][11] == 1 and CLASS0<n_imgs):
