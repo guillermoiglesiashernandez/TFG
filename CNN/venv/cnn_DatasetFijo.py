@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow
 import seaborn as sns
+import zipfile
 
+from datetime import datetime
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Activation
 from tensorflow.keras.layers import Conv2D, MaxPooling2D
@@ -18,7 +20,8 @@ class CNN:
         self.lossArray = []
         self.accuracyArray = []
 
-        self.num_imgs = 10000
+        self.num_imgs = 20000
+        self.loadWeights = True
 
         self.batch_size = 120 #Tiene que ser multiplo de 3
         self.epochs = 25
@@ -28,6 +31,7 @@ class CNN:
         self.input_shape = (128, 128, 1)
         self.savePerformance = 50
 
+        print("-----CREANDO MODELO-----")
         self.model = Sequential()
         self.model.add(Conv2D(32, kernel_size=(5, 5), strides=(1, 1),
                  activation='relu',
@@ -51,19 +55,25 @@ class CNN:
               metrics=['accuracy'])
         print(self.model.summary())
 
+        if self.loadWeights:
+            print("-----CARGANDO PESOS DE LA RED-----")
+            self.model.load_weights("saved_model/cnn_weights.hdf5")
+
+            print("-----GUARDANDO BACKUP DEL ENTRENO ANTERIOR-----")
+            fileName = "resultsBk" + datetime.now().strftime("%d%m%Y-%H%M%S") + ".zip"
+            with zipfile.ZipFile(fileName, "w") as zip:
+                zip.write("confMatrix/")
+                for file in glob.glob("confMatrix/*"):
+                    zip.write(file)
+                zip.write("graphics/")
+                for file in glob.glob("graphics/*"):
+                    zip.write(file)
+
     def save_model(self):
         print("\t Guardando el modelo")
-
-        def save(model, model_name):
-            model_path = "saved_model/%s.json" % model_name
-            weights_path = "saved_model/%s_weights.hdf5" % model_name
-            options = {"file_arch": model_path,
-                       "file_weight": weights_path}
-            json_string = model.to_json()
-            open(options['file_arch'], 'w').write(json_string)
-            model.save_weights(options['file_weight'])
-
-        save(self.model, "cnn")
+        json_string = self.model.to_json()
+        open("saved_model/cnn.json", 'w').write(json_string)
+        model.save_weights("saved_model/cnn_weights.hdf5")
 
     def generate_graphic(self):
         print("\t Guardando el grafico de losses")
