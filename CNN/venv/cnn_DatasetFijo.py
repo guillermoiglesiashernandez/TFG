@@ -14,17 +14,24 @@ from tensorflow.keras import backend as K
 from PIL import Image
 from sklearn.metrics import plot_confusion_matrix
 
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
+
 
 class CNN:
     def __init__(self):
         self.lossArray = []
         self.accuracyArray = []
+        self.accuracyArrayTest = []
+        self.epochLossArray = []
+        self.epochAccuracyArray = []
+        self.epochAccuracyArrayTest = []
 
         self.num_imgs = 20000
         self.loadWeights = True
 
         self.batch_size = 120 #Tiene que ser multiplo de 3
-        self.epochs = 25
+        self.epochs = 50
         self.num_classes = 3
         self.batches = int((self.num_classes*self.num_imgs)/self.batch_size)
 
@@ -65,15 +72,27 @@ class CNN:
                 zip.write("confMatrix/")
                 for file in glob.glob("confMatrix/*"):
                     zip.write(file)
-                zip.write("graphics/")
-                for file in glob.glob("graphics/*"):
+
+                for file in glob.glob("performance/trainPerformance/*"):
+                    zip.write(file)
+                for file in glob.glob("performance/trainPerformance/performance/*"):
+                    zip.write(file)
+
+                for file in glob.glob("performance/testPerformance/*"):
+                    zip.write(file)
+                for file in glob.glob("performance/testPerformance/performance/*"):
+                    zip.write(file)
+
+                for file in glob.glob("performance/epochPerformance/*"):
+                    zip.write(file)
+                for file in glob.glob("performance/epochPerformance/performance/*"):
                     zip.write(file)
 
     def save_model(self):
         print("\t Guardando el modelo")
         json_string = self.model.to_json()
         open("saved_model/cnn.json", 'w').write(json_string)
-        model.save_weights("saved_model/cnn_weights.hdf5")
+        self.model.save_weights("saved_model/cnn_weights.hdf5")
 
     def generate_graphic(self):
         print("\t Guardando el grafico de losses")
@@ -84,9 +103,16 @@ class CNN:
         ax2.plot(x_plot, self.accuracyArray)
         ax1.set_title('Loss')
         ax2.set_title('Accuracy')
-        filename = 'graphics/generated_graphic_e%03db%03d.png' % (epoch,batch)
+        filename = 'performance/trainPerformance/generated_graphic_e%03db%03d.png' % (epoch,batch)
         plt.savefig(filename)
         plt.close()
+
+        with open('performance/trainPerformance/performance/lossPerformance.txt', 'w') as f:
+            for loss in self.lossArray:
+                f.write("%s\n" % loss)
+        with open('performance/trainPerformance/performance/accuracyPerformance.txt', 'w') as f:
+            for accuracy in self.accuracyArray:
+                f.write("%s\n" % accuracy)
 
     def savePrediction(self, x_train, y_train, y_trainPredict):
         print("\t Guardando predicciones")
@@ -100,18 +126,81 @@ class CNN:
         plt.savefig(filename)
         plt.close()
 
-    def saveConfMatrix(self, x_train, y_train, y_trainPredict):
+    def saveConfMatrix(self, x_train, y_train, y_trainPredict, epoch, batch):
         print("\t Guardando matriz de confusion")
         confMat = tensorflow.math.confusion_matrix(labels = y_train, predictions = y_trainPredict).numpy()
+        confMatNorm = np.around(confMat.astype('float') / confMat.sum(axis=1)[:, np.newaxis], decimals=3)
 
-        figure = plt.figure()
-        sns.heatmap(confMat, annot=True, cmap=plt.cm.Blues)
+        nImgs = len(y_train)
+        accuracyT = (sum(confMat[i][i] for i in range(len(confMat[0]))))/nImgs
+        self.accuracyArrayTest = np.append(self.accuracyArrayTest, accuracyT)
+
+        with open('performance/testPerformance/performance/accuracyTestPerformance.txt', 'w') as f:
+            for accuracy in self.accuracyArrayTest:
+                f.write("%s\n" % accuracy)
+
+        x_plot = np.arange(self.accuracyArrayTest.shape[0])
+        plt.tight_layout('Accuracy')
+        plt.plot(x_plot, self.accuracyArrayTest)
+
+        filename = 'performance/testPerformance/generated_graphic_e%03db%03d.png' % (epoch, batch)
+        plt.savefig(filename)
+        plt.close()
+
+        plt.subplot(211)
+        sns.heatmap(confMat, annot=True, cmap=plt.cm.Blues, fmt='g')
         plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
+        plt.suptitle('Numeral confusion matrix')
+
+        plt.subplot(212)
+        sns.heatmap(confMatNorm, annot=True, cmap=plt.cm.Blues, fmt='g')
+        plt.tight_layout()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+        plt.suptitle('Percentage confusion matrix')
+
         filename = 'confMatrix/generated_confMat_e%03db%03d.png' % (epoch,batch)
         plt.savefig(filename)
         plt.close()
+
+    def saveEpochPerformance(self):
+        self.epochLossArray = np.append(self.epochLossArray, np.mean(self.lossArray))
+        self.epochAccuracyArray = np.append(self.epochAccuracyArray, np.mean(self.accuracyArray))
+        self.epochAccuracyArrayTest = np.append(self.epochAccuracyArrayTest, np.mean(self.accuracyArrayTest))
+
+        plt.subplot(311)
+        x_plot = np.arange(self.epochLossArray.shape[0])
+        plt.tight_layout()
+        plt.xlabel('Loss means')
+        plt.plot(x_plot, self.epochLossArray)
+
+        plt.subplot(312)
+        plt.tight_layout()
+        plt.xlabel('Accuracy means')
+        plt.plot(x_plot, self.epochAccuracyArray)
+
+        plt.subplot(313)
+        plt.tight_layout()
+        plt.xlabel('Accuracy tests means')
+        plt.plot(x_plot, self.epochAccuracyArrayTest)
+
+        filename = 'performance/epochPerformance/generated_performance_e%03d.png' % (epoch)
+        plt.savefig(filename)
+        plt.close()
+
+        with open('performance/epochPerformance/performance/lossPerformance.txt', 'w') as f:
+            for loss in self.epochLossArray:
+                f.write("%s\n" % loss)
+        with open('performance/epochPerformance/performance/accuracyPerformance.txt', 'w') as f:
+            for accuracy in self.epochAccuracyArray:
+                f.write("%s\n" % accuracy)
+        with open('performance/epochPerformance/performance/accuracyTestPerformance.txt', 'w') as f:
+            for accuracy in self.epochAccuracyArrayTest:
+                f.write("%s\n" % accuracy)
+
+
 
 def get_imgs(n_imgs):
     print("-----CARGANDO DATASET-----")
@@ -225,7 +314,15 @@ for epoch in range(cnn.epochs):
         if (batch % cnn.savePerformance == 0):
             cnn.save_model()
             cnn.generate_graphic()
-            idx = np.random.randint(int(cnn.batches*0.2), cnn.batches)
-            x_train, y_train = get_batch(datasetX[idx], datasetY[idx], cnn.input_shape)
-            y_trainPredict = cnn.model.predict_classes(x_train)
-            cnn.saveConfMatrix(x_train, y_train, y_trainPredict)
+
+            idx = np.random.randint(int(cnn.batches * 0.2), cnn.batches)
+            x_predict, y_predict = get_batch(datasetX[idx], datasetY[idx], cnn.input_shape)
+            for i in range(10):
+                idx = np.random.randint(int(cnn.batches*0.2), cnn.batches)
+                x, y = get_batch(datasetX[idx], datasetY[idx], cnn.input_shape)
+                x_predict = np.append(x_predict, x, axis=0)
+                y_predict = np.append(y_predict, y, axis=0)
+            y_prediction = cnn.model.predict_classes(x_predict)
+            cnn.saveConfMatrix(x_predict, y_predict, y_prediction, epoch, batch)
+
+    cnn.saveEpochPerformance()
