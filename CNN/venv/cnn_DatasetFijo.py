@@ -28,15 +28,15 @@ class CNN:
         self.epochAccuracyArrayTest = []
 
         self.num_imgs = 20000
-        self.loadWeights = True
+        self.loadWeights = False
 
         self.batch_size = 120 #Tiene que ser multiplo de 3
-        self.epochs = 50
-        self.num_classes = 3
+        self.epochs = 20
+        self.num_classes = 5
         self.batches = int((self.num_classes*self.num_imgs)/self.batch_size)
 
         self.input_shape = (128, 128, 1)
-        self.savePerformance = 50
+        self.savePerformance = 75
 
         print("-----CREANDO MODELO-----")
         self.model = Sequential()
@@ -70,22 +70,51 @@ class CNN:
             fileName = "resultsBk" + datetime.now().strftime("%d%m%Y-%H%M%S") + ".zip"
             with zipfile.ZipFile(fileName, "w") as zip:
                 zip.write("confMatrix/")
-                for file in glob.glob("confMatrix/*"):
+                files = glob.glob("confMatrix/*")
+                for file in files:
                     zip.write(file)
+                    os.remove(file)
 
-                for file in glob.glob("performance/trainPerformance/*"):
+                files = glob.glob("performance/trainPerformance/*.png")
+                for file in files:
                     zip.write(file)
-                for file in glob.glob("performance/trainPerformance/performance/*"):
+                    os.remove(file)
+                files = glob.glob("performance/trainPerformance/performance/*.txt")
+                for file in files:
                     zip.write(file)
+                    os.remove(file)
+                files = glob.glob("performance/trainPerformance/results/*.png")
+                for file in files:
+                    zip.write(file)
+                    os.remove(file)
 
-                for file in glob.glob("performance/testPerformance/*"):
+                files = glob.glob("performance/testPerformance/*.png")
+                for file in files:
                     zip.write(file)
-                for file in glob.glob("performance/testPerformance/performance/*"):
+                    os.remove(file)
+                files = glob.glob("performance/testPerformance/performance/*.txt")
+                for file in files:
                     zip.write(file)
+                    os.remove(file)
+                files = glob.glob("performance/testPerformance/results/*.png")
+                for file in files:
+                    zip.write(file)
+                    os.remove(file)
 
-                for file in glob.glob("performance/epochPerformance/*"):
+                files = glob.glob("performance/epochPerformance/*.png")
+                for file in files:
                     zip.write(file)
-                for file in glob.glob("performance/epochPerformance/performance/*"):
+                    os.remove(file)
+                files = glob.glob("performance/epochPerformance/performance/*.txt")
+                for file in files:
+                    zip.write(file)
+                    os.remove(file)
+                files = glob.glob("performance/epochPerformance/results/*.png")
+                for file in files:
+                    zip.write(file)
+                    os.remove(file)
+
+                for file in glob.glob("saved_model/*"):
                     zip.write(file)
 
     def save_model(self):
@@ -103,7 +132,9 @@ class CNN:
         ax2.plot(x_plot, self.accuracyArray)
         ax1.set_title('Loss')
         ax2.set_title('Accuracy')
-        filename = 'performance/trainPerformance/generated_graphic_e%03db%03d.png' % (epoch,batch)
+        filename = 'performance/trainPerformance/results/generated_performance_e%03db%03d.png' % (epoch,batch)
+        plt.savefig(filename)
+        filename = 'performance/trainPerformance/generated_performance.png'
         plt.savefig(filename)
         plt.close()
 
@@ -140,10 +171,13 @@ class CNN:
                 f.write("%s\n" % accuracy)
 
         x_plot = np.arange(self.accuracyArrayTest.shape[0])
-        plt.tight_layout('Accuracy')
+        plt.tight_layout()
+        plt.title('Test accuracy')
         plt.plot(x_plot, self.accuracyArrayTest)
 
-        filename = 'performance/testPerformance/generated_graphic_e%03db%03d.png' % (epoch, batch)
+        filename = 'performance/testPerformance/results/generated_accuracy_e%03db%03d.png' % (epoch, batch)
+        plt.savefig(filename)
+        filename = 'performance/testPerformance/generated_accuracy.png'
         plt.savefig(filename)
         plt.close()
 
@@ -186,7 +220,9 @@ class CNN:
         plt.xlabel('Accuracy tests means')
         plt.plot(x_plot, self.epochAccuracyArrayTest)
 
-        filename = 'performance/epochPerformance/generated_performance_e%03d.png' % (epoch)
+        filename = 'performance/epochPerformance/results/generated_performance_e%03d.png' % (epoch)
+        plt.savefig(filename)
+        filename = 'performance/epochPerformance/generated_performance.png'
         plt.savefig(filename)
         plt.close()
 
