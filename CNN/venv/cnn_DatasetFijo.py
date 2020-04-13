@@ -27,11 +27,11 @@ class CNN:
         self.epochAccuracyArray = []
         self.epochAccuracyArrayTest = []
 
-        self.num_imgs = 20000
-        self.loadWeights = False
+        self.num_imgs = 10000
+        self.loadWeights = True
 
-        self.batch_size = 120 #Tiene que ser multiplo de 3
-        self.epochs = 20
+        self.batch_size = 120 #Tiene que ser multiplo de num_classes
+        self.epochs = 25
         self.num_classes = 5
         self.batches = int((self.num_classes*self.num_imgs)/self.batch_size)
 
@@ -244,45 +244,57 @@ def get_imgs(n_imgs):
     CLASS0 = 0
     CLASS1 = 0
     CLASS2 = 0
-    x = [[],[],[]]
-    y = [[],[],[]]
+    CLASS3 = 0
+    CLASS4 = 0
+    x = [[],[],[],[],[]]
+    y = [[],[],[],[],[]]
     i = 0
     j = 0
 
-    while (i<16 and (CLASS0<n_imgs or CLASS1<n_imgs or CLASS2<n_imgs)):
+    while (i<16 and (CLASS0<n_imgs or CLASS1<n_imgs or CLASS2<n_imgs or CLASS3<n_imgs or CLASS4<n_imgs)):
         with open(('C:/Users/Guillermo/Desktop/TFG/DatasetBW/MetadataImg/' + str(i) + '.json'), 'r', encoding="utf8") as f:
             data = json.load(f)
         print('C:/Users/Guillermo/Desktop/TFG/DatasetBW/MetadataImg/' + str(i) + '.json')
 
         j=0
-        while(j<len(data) and (CLASS0<n_imgs or CLASS1<n_imgs or CLASS2<n_imgs)):
+        while(j<len(data) and (CLASS0<n_imgs or CLASS1<n_imgs or CLASS2<n_imgs or CLASS3<n_imgs or CLASS4<n_imgs)):
             fold = '%04d' % (int(data[j]["id"]) % 1000)
             try:
                 imgFile = "C:/Users/Guillermo/Desktop/TFG/DatasetBW/LowResImages/" + fold + "/" + str(data[j]["id"]) + ".jpg"
                 img = plt.imread(imgFile)
 
-                if (data[j]["tagArray"][11] == 1 and CLASS0<n_imgs):
-                    # Sombrero
+                if (data[j]["tagArray"][15] == 1 and CLASS0<n_imgs):
+                    # Vestido
                     x[0].append(imgFile)
                     y[0].append("0")
                     CLASS0 += 1
-                elif (data[j]["tagArray"][0] == 1 and data[j]["tagArray"][3] == 1 and CLASS1<n_imgs):
-                    # Chica con el pelo corto
+                elif (data[j]["tagArray"][11] == 1 and CLASS1<n_imgs):
+                    # Sombrero
                     x[1].append(imgFile)
                     y[1].append("1")
                     CLASS1 += 1
-                elif (data[j]["tagArray"][0] == 1 and data[j]["tagArray"][1] == 1 and CLASS2<n_imgs):
-                    # Chica con el pelo largo
+                elif (data[j]["tagArray"][10] == 1 and CLASS2<n_imgs):
+                    # Falda
                     x[2].append(imgFile)
                     y[2].append("2")
                     CLASS2 += 1
+                elif (data[j]["tagArray"][0] == 1 and data[j]["tagArray"][3] == 1 and CLASS3<n_imgs):
+                    # Chica con el pelo corto
+                    x[3].append(imgFile)
+                    y[3].append("3")
+                    CLASS3 += 1
+                elif (data[j]["tagArray"][0] == 1 and data[j]["tagArray"][1] == 1 and CLASS4<n_imgs):
+                    # Chica con el pelo largo
+                    x[4].append(imgFile)
+                    y[4].append("4")
+                    CLASS4 += 1
             except FileNotFoundError:
                 ""
             j+=1
         i+=1
 
     print("Imagenes cargadas:\n"
-          "\tClase 0: " + str(CLASS0) + "\tClase 1: " + str(CLASS1) + "\tClase 2: " + str(CLASS2))
+          "\tClase 0: " + str(CLASS0) + "\tClase 1: " + str(CLASS1) + "\tClase 2: " + str(CLASS2) + "\tClase 3: " + str(CLASS3) + "\tClase 4: " + str(CLASS4))
     return x, y
 
 def mix_dataset(x_dataset, y_dataset, n_batches, n_imgs):
@@ -302,13 +314,19 @@ def mix_dataset(x_dataset, y_dataset, n_batches, n_imgs):
             x_train[i][j] = x_dataset[2][aux]
             y_train[i][j] = y_dataset[2][aux]
             j += 1
+            x_train[i][j] = x_dataset[3][aux]
+            y_train[i][j] = y_dataset[3][aux]
+            j += 1
+            x_train[i][j] = x_dataset[4][aux]
+            y_train[i][j] = y_dataset[4][aux]
+            j += 1
             aux += 1
 
     return x_train, y_train
 
-def load_dataset(n_imgs, batch_size):
+def load_dataset(n_imgs, batch_size, num_classes):
     x_dataset, y_dataset = get_imgs(n_imgs)
-    n_batches = int((n_imgs*3)/batch_size)
+    n_batches = int((n_imgs*num_classes)/batch_size)
     x_train, y_train = mix_dataset(x_dataset, y_dataset, n_batches, batch_size)
 
     return x_train, y_train
@@ -333,7 +351,7 @@ def get_batch(x_dataset, y_dataset, input_shape):
 
 cnn = CNN()
 
-datasetX, datasetY = load_dataset(cnn.num_imgs, cnn.batch_size) #aqui no va 300, va cnn.batch_size
+datasetX, datasetY = load_dataset(cnn.num_imgs, cnn.batch_size, cnn.num_classes) #aqui no va 300, va cnn.batch_size
 for epoch in range(cnn.epochs):
     print("-----EPOCH " + str(epoch) +"/" + str(cnn.epochs) + "-----")
 
