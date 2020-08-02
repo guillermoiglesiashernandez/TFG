@@ -9,7 +9,7 @@ series = 0
 collections = 0
 enc = False
 
-for myFile in glob.glob('MetadataImgCleaned/*'):
+for myFile in glob.glob('C:/Users/Guillermo/Desktop/TFG/Archivos Grandes/Metadata Transitorio/MetadataImgCleaned/*'):
     print(myFile)
     with open(myFile, 'r', encoding="utf8") as f:
         data = json.load(f)
@@ -23,16 +23,16 @@ for myFile in glob.glob('MetadataImgCleaned/*'):
                 if tag == 'collection':
                     enc = True
                     collections+=1
-            if enc == False:
-                print(element['id'])
-                print(element['pools'])
-                folder = '%04d' % (int(element["id"]) % 1000)
+            #if enc == False:
+            print(element['id'])
+            print(element['pools'])
+            folder = '%04d' % (int(element["id"]) % 1000)
 
-                img = mpimg.imread("C:/Users/Guillermo/Desktop/Imagenes/danbooru-images/danbooru-images/" + folder + "/" + str(element["id"]) + ".jpg")
+            img = mpimg.imread("C:/Users/Guillermo/Desktop/TFG/Archivos Grandes/Dataset/danbooru-images/danbooru-images/" + folder + "/" + str(element["id"]) + ".jpg")
 
-                plt.imshow(img)
-                plt.show()
-                cont +=1
+            plt.imshow(img)
+            plt.show()
+            cont +=1
 
             enc = False
 

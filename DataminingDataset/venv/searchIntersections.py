@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 
-i = 0
-cont = 0
+enc = 0
 
 for myFile in glob.glob('C:/Users/Guillermo/Desktop/TFG/Archivos Grandes/Metadata Transitorio/MetadataImgCleaned/*'):
     print(myFile)
@@ -12,17 +11,12 @@ for myFile in glob.glob('C:/Users/Guillermo/Desktop/TFG/Archivos Grandes/Metadat
         data = json.load(f)
 
     for element in data:
+        enc=0
         for tag in element['tags']:
-            if tag['name'] == "blush":
+            if tag['name'] == "breasts":
+                enc +=1
+            elif tag['name'] == "blush":
+                enc +=1
+            if(enc==2):
                 print(element['id'])
-                print(tag['name'])
-                #folder = '%04d' % (int(element["id"]) % 1000)
-
-                #img = mpimg.imread("C:/Users/Guillermo/Desktop/Imagenes/danbooru-images/danbooru-images/" + folder + "/" + str(element["id"]) + ".jpg")
-
-                #plt.imshow(img)
-                #plt.show()
-                cont +=1
-    i += 1
-
-print(cont)
+                enc+=1
